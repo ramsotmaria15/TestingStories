@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>¡Limpiar el Dungeon!</title>
+
+<style>
+
+* {
+  box-sizing: border-box;
+  user-select: none;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: sans-serif;
+}
+
+.poem {
+  white-space: pre-line;
+}
+
+/* =================================
+   INITIAL WELCOME SCREEN
+================================= */
+
+#start-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 25, 45, 0.75);
+  z-index: 10000;
+  padding: 20px;
+}
+
+#start-window {
+  width: min(80%, 400px);
+  max-height: 90vh;
+  max-height: 90dvh;
+  background: rgba(255, 255, 255, 0.97);
+  border: 4px solid #8ccde8;
+  border-radius: 22px;
+  padding: 25px;
+  text-align: center;
+  box-shadow: 0 0 30px rgba(0, 119, 204, 0.5);
+  animation: welcomeAppear 0.5s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+#start-phoenix {
+  width: clamp(90px, 20vw, 140px);
+  height: clamp(90px, 20vw, 140px);
+  object-fit: contain;
+  flex-shrink: 0;
+  margin-bottom: 8px;
+}
+
+#start-window h1 {
+  color: #0077cc;
+  font-size: clamp(21px, 4vw, 28px);
+  margin: 5px 0 15px;
+  flex-shrink: 0;
+}
+
+#intro-text {
+  color: #333;
+  font-size: 16px;
+  line-height: 1.7;
+  text-align: left;
+  white-space: pre-line;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+  width: 100%;
+  margin: 0;
+  flex: 1;
+  min-height: 80px;
+  overflow-y: auto;
+  user-select: text;
+}
+
+/* INTRO NAVIGATION */
+
+#intro-navigation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-top: 20px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+#intro-navigation button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  background: #0077cc;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#intro-navigation button:hover:not(:disabled) {
+  background: #005fa3;
+  transform: scale(1.05);
+}
+
+#intro-navigation button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+#start-button {
+  font-size: 18px !important;
+  padding: 13px 30px !important;
+}
+
+#intro-counter {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #777;
+  flex-shrink: 0;
+}
+
+/* =================================
+   MAIN PAGE LAYOUT
+================================= */
+
+#game-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(100px, 14vw, 170px);
+  grid-template-rows: minmax(0, 1fr) 100px;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* =================================
+   GAME AREA
+================================= */
+
+#game-area {
+  position: relative;
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 3px solid #8ccde8;
+  background-image: url('Background/snow.png');
+  background-position: center;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+/* =================================
+   SCOREBOARD
+================================= */
+
+#score-board {
+  position: absolute;
+  top: 2%;
+  left: 2%;
+  background: rgba(255, 255, 255, 0.85);
+  padding: clamp(6px, 1vw, 12px) clamp(10px, 1.5vw, 20px);
+  border-radius: 8px;
+  font-size: clamp(14px, 2vw, 20px);
+  font-weight: bold;
+  z-index: 200;
+}
+
+/* =================================
+   DRAGGABLE ITEMS
+================================= */
+
+.item {
+  position: absolute;
+  width: clamp(38px, 5.5vw, 70px);
+  height: clamp(38px, 5.5vw, 70px);
+  object-fit: contain;
+  cursor: grab;
+  touch-action: none;
+  transition: none;
+  z-index: 5;
+}
+
+.item.dragging {
+  cursor: grabbing;
+  transform: scale(1.15);
+  filter: drop-shadow(0 0 12px #00aaff);
+  z-index: 9999;
+}
+
+/* =================================
+   RIGHT-SIDE BASKET PANEL
+================================= */
+
+#basket-container {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  padding: 12px 8px;
+  gap: clamp(8px, 2vh, 20px);
+  background: rgba(255, 255, 255, 0.15);
+  border-left: 2px solid rgba(255, 255, 255, 0.5);
+  z-index: 10;
+}
+
+.basket {
+  position: relative;
+  width: clamp(58px, 8vw, 110px);
+  aspect-ratio: 1 / 1;
+  flex-shrink: 0;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition: filter 0.15s;
+}
+
+.basket-purple {
+  background-image: url('Icons/bin_purple.png');
+}
+
+.basket-red {
+  background-image: url('Icons/bin_red.png');
+}
+
+.basket-yellow {
+  background-image: url('Icons/bin_yellow.png');
+}
+
+.basket-gray {
+  background-image: url('Icons/bin_gray.png');
+}
+
+.basket.highlight {
+  filter: drop-shadow(0 0 15px #00aaff);
+}
+
+/* =================================
+   MC DIALOGUE BANNER
+================================= */
+
+#character-banner {
+  grid-column: 1 / 3;
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.98);
+  padding: 8px 18px;
+  z-index: 1;
+}
+
+#mc-image {
+  width: clamp(55px, 8vw, 85px);
+  height: 100%;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+#mc-dialogue {
+  flex: 1;
+  font-size: clamp(13px, 1.6vw, 18px);
+  font-weight: bold;
+  color: #333;
+  line-height: 1.4;
+  overflow-y: auto;
+  user-select: text;
+  white-space: pre-line;
+}
+
+/* =================================
+   BOTTOM RIGHT ACTION BUTTONS
+================================= */
+
+#action-buttons {
+  position: fixed;
+  right: 18px;
+  bottom: 26px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 400;
+}
+
+/* FINISH EXAM BUTTON */
+
+#finish-exam-button {
+  padding: 11px 18px;
+  border: 3px solid #8ccde8;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #0077cc;
+  font-size: clamp(12px, 1.5vw, 16px);
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(0, 119, 204, 0.35);
+  transition: 0.2s;
+}
+
+#finish-exam-button:hover {
+  transform: scale(1.05);
+  background: #eaf8ff;
+}
+
+/* HELP BUTTON */
+
+#help-button {
+  width: 48px;
+  height: 48px;
+  border: 3px solid #8ccde8;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  color: #0077cc;
+  font-size: 27px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 12px rgba(0, 119, 204, 0.35);
+  transition: 0.2s;
+}
+
+#help-button:hover {
+  transform: scale(1.1);
+  background: #eaf8ff;
+}
+
+/* =================================
+   CUSTOM HELP WINDOW
+================================= */
+
+#help-window {
+  display: none;
+  position: fixed;
+  right: 20px;
+  bottom: 100px;
+  width: min(320px, calc(100vw - 40px));
+  max-height: 70vh;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.97);
+  border: 3px solid #8ccde8;
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 0 25px rgba(0, 119, 204, 0.35);
+  z-index: 500;
+  font-family: sans-serif;
+  color: #333;
+}
+
+#help-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  color: #0077cc;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+#help-close {
+  border: none;
+  background: transparent;
+  color: #0077cc;
+  font-size: 25px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#help-content {
+  font-size: 14px;
+  line-height: 1.6;
+  user-select: text;
+}
+
+#help-content p {
+  margin: 8px 0;
+}
+
+#help-content strong {
+  color: #0077cc;
+}
+
+
+/* =================================
+   EXAM RESULTS WINDOW
+================================= */
+
+#game-over {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(10, 25, 45, 0.75);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+  color: #333;
+}
+
+/* SINGLE CONTINUOUS RESULTS WINDOW */
+
+#results-window {
+  width: min(90%, 400px);
+  background: rgba(255, 255, 255, 0.98);
+  border: 4px solid #8ccde8;
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 0 30px rgba(0, 119, 204, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+#result-title {
+  width: 100%;
+  color: #0077cc;
+  font-size: clamp(22px, 5vw, 28px);
+  margin: 0;
+}
+
+#result-message {
+  width: 100%;
+  line-height: 1.6;
+  margin: 0;
+}
+
+#result-score {
+  font-weight: bold;
+  font-size: 18px;
+  margin: 5px 0;
+}
+
+#results-window button {
+  width: 100%;
+  padding: 13px 20px;
+  border: none;
+  border-radius: 10px;
+  background: #0077cc;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#results-window button:hover {
+  background: #005fa3;
+  transform: scale(1.03);
+}
+
+/* BUTTON VISIBILITY */
+
+#retry-button,
+#continue-button {
+  display: none;
+}
+
+
+/* =================================
+   ANIMATION
+================================= */
+
+@keyframes welcomeAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* =================================
+   MOBILE ADJUSTMENTS
+================================= */
+
+@media (max-width: 600px) {
+
+  #game-layout {
+    grid-template-columns: minmax(0, 1fr) 72px;
+    grid-template-rows: minmax(0, 1fr) 75px;
+  }
+
+  #character-banner {
+    padding: 5px 10px;
+    gap: 8px;
+    border-width: 2px;
+  }
+
+  #mc-image {
+    width: 55px;
+  }
+
+  #action-buttons {
+    right: 10px;
+    bottom: 14px;
+    gap: 8px;
+  }
+
+  #finish-exam-button {
+    padding: 9px 11px;
+    font-size: 11px;
+    border-width: 2px;
+  }
+
+  #help-button {
+    width: 40px;
+    height: 40px;
+    font-size: 23px;
+    border-width: 2px;
+  }
+
+  #help-window {
+    right: 10px;
+    bottom: 65px;
+  }
+
+  #basket-container {
+    padding: 8px 3px;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.98);
+    border: 3px solid #8ccde8;
+  }
+
+  .basket {
+    width: clamp(44px, 12vw, 65px);
+  }
+
+  .item {
+    width: clamp(38px, 9vw, 52px);
+    height: clamp(38px, 9vw, 52px);
+  }
+
+  #start-window {
+    padding: 18px;
+    width: min(95%, 500px);
+  }
+
+  #start-phoenix {
+    width: 95px;
+    height: 95px;
+  }
+
+  #intro-text {
+    font-size: 15px;
+  }
+
+  #intro-navigation {
+    gap: 10px;
+  }
+
+}
+
+/* SMALL SCREEN RESULTS */
+
+@media (max-width: 400px) {
+
+  #finish-exam-button {
+    padding: 8px;
+    font-size: 10px;
+  }
+
+  #action-buttons {
+    gap: 6px;
+  }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- =================================
+     INITIAL WELCOME WINDOW
+================================= -->
+
+<div id="start-screen">
+
+  <div id="start-window">
+
+    <img
+      src="Icons/phoenix.png"
+      alt="Phoenix"
+      id="start-phoenix"
+    >
+
+    <h1 id="intro-title">¡Hola, soy Fénix!</h1>
+
+    <p id="intro-text" class="poem"></p>
+
+    <div id="intro-navigation">
+
+      <button id="prev-intro" disabled>←</button>
+
+      <button id="next-intro">→</button>
+
+      <button id="start-button" style="display:none;">
+        Comenzar prueba
+      </button>
+
+    </div>
+
+    <div id="intro-counter"></div>
+
+  </div>
+
+</div>
+
+<!-- =================================
+     MAIN GAME
+================================= -->
+
+<div id="game-layout">
+
+  <div id="game-area">
+
+    <div id="score-board">
+      Puntaje: <span id="score">0</span>
+    </div>
+
+    <!-- PURPLE OBJECTS -->
+
+    <img src="Icons/potion-dead.png" class="item"
+         data-category="purple"
+         style="top: 80%; left: 5%;" alt="Potion">
+
+    <img src="Icons/magic-jewel.png" class="item"
+         data-category="purple"
+         style="top: 88%; left: 60%;" alt="Jewel">
+
+    <img src="Icons/potion-love.png" class="item"
+         data-category="purple"
+         style="top: 85%; left: 90%;" alt="Love Potion">
+
+    <img src="Icons/magic-gloves.png" class="item"
+         data-category="purple"
+         style="top: 80%; left: 50%;" alt="Gloves">
+
+    <!-- RED OBJECTS -->
+
+    <img src="Icons/bear-skin.png" class="item"
+         data-category="red"
+         style="top: 70%; left: 15%;" alt="Skin rug">
+
+    <img src="Icons/bear-bone.png" class="item"
+         data-category="red"
+         style="top: 78%; left: 55%;" alt="Bear bone">
+
+    <img src="Icons/sword.png" class="item"
+         data-category="red"
+         style="top: 65%; left: 25%;" alt="Sword">
+
+    <img src="Icons/book-fire.png" class="item"
+         data-category="red"
+         style="top: 80%; left: 80%;" alt="Book Fire">
+
+    <!-- YELLOW OBJECTS -->
+
+    <img src="Icons/christmas-sock.png" class="item"
+         data-category="yellow"
+         style="top: 34%; left: 69%;" alt="Christmas sock">
+
+    <img src="Icons/shield.png" class="item"
+         data-category="yellow"
+         style="top: 64%; left: 80%;" alt="Shield">
+
+    <img src="Icons/amulet.png" class="item"
+         data-category="yellow"
+         style="top: 84%; left: 70%;" alt="Amulet">
+
+    <img src="Icons/tint.png" class="item"
+         data-category="yellow"
+         style="top: 60%; left: 39%;" alt="Tint">
+
+    <!-- GRAY OBJECTS -->
+
+    <img src="Icons/ponche-crema.png" class="item"
+         data-category="gray"
+         style="top: 85%; left: 20%;" alt="Ponche crema">
+
+    <img src="Icons/panettone.png" class="item"
+         data-category="gray"
+         style="top: 70%; left: 30%;" alt="Panettone">
+
+    <img src="Icons/backpack.png" class="item"
+         data-category="gray"
+         style="top: 48%; left: 50%;" alt="Backpack">
+
+    <img src="Icons/keys.png" class="item"
+         data-category="gray"
+         style="top: 45%; left: 30%;" alt="Keys">
+
+    <!-- OBJECTS THAT BELONG IN NO BASKET -->
+
+    <img src="Icons/snowman.png" class="item"
+         data-category="none"
+         style="top: 60%; left: 90%; width: 120px; height: 120px;"
+         alt="Snowman">
+
+    <img src="Icons/ice-covered-bush.png" class="item"
+         data-category="none"
+         style="top: 71%; left: 72%;"
+         alt="Ice-covered bush">
+
+    <img src="Icons/rock.png" class="item"
+         data-category="none"
+         style="top: 85%; left: 35%;"
+         alt="Rock">
+
+    <img src="Icons/tree.png" class="item"
+         data-category="none"
+         style="top: 20%; right: 84%; width: 240px; height: 380px;"
+         alt="Tree">
+
+  </div>
+
+  <!-- CLASSIFICATION BASKETS -->
+
+  <div id="basket-container">
+
+    <div class="basket basket-purple"
+         data-category="purple"></div>
+
+    <div class="basket basket-red"
+         data-category="red"></div>
+
+    <div class="basket basket-yellow"
+         data-category="yellow"></div>
+
+    <div class="basket basket-gray"
+         data-category="gray"></div>
+
+  </div>
+
+  <!-- MC DIALOGUE BANNER -->
+
+  <div id="character-banner">
+
+    <img src="Icons/phoenix.png"
+         id="mc-image" alt="Main character">
+
+    <div id="mc-dialogue">
+      Selecciona un objeto y veamos qué es.
+    </div>
+
+  </div>
+
+</div>
+
+<!-- BOTTOM RIGHT BUTTONS -->
+
+<div id="action-buttons">
+
+  <button id="finish-exam-button">
+    Culminar Examen
+  </button>
+
+  <button id="help-button" aria-label="Open help">
+    ?
+  </button>
+
+</div>
+
+<!-- HELP WINDOW -->
+
+<div id="help-window">
+
+  <div id="help-header">
+
+    <span>Dungeon Help</span>
+
+    <button id="help-close" aria-label="Close help">
+      ×
+    </button>
+
+  </div>
+
+  <div id="help-content">
+
+    <p><strong>Ayuda</strong></p>
+
+    <p>
+      Nuestra misión es ayudar a Voldy a clasificar
+      los objetos en los contenedores adecuados.
+    </p>
+
+    <p>
+      <strong>1.</strong> Selecciona un objeto.
+      Prometo darte un poco más de información
+      sobre cada uno.
+    </p>
+
+    <p>
+      <strong>2.</strong> Llévalo a los contenedores
+      ubicados a la derecha.
+    </p>
+
+    <p>
+      <strong>3.</strong> Colócalo en el contenedor
+      que le corresponde.
+    </p>
+
+    <p>
+      <strong>4.</strong> Los objetos que pertenecen al
+      dungeon y que NO son peligrosos no deben guardarse
+      en los contenedores. ¡Lo demás seguro lo aprendiste
+      en la Capacitación!
+    </p>
+
+    <p>
+      <strong>Calificación:</strong> Gana 1 punto por
+      cada respuesta correcta. Los cuatro objetos
+      que no pertenecen a ninguna cesta también
+      otorgan 1 punto cada uno si los dejas afuera.
+      ¡Voldy necesita 10 puntos para aprobar la prueba!
+    </p>
+
+    <p>¡Buena suerte!</p>
+
+  </div>
+
+</div>
+
+
+<!-- EXAM RESULTS WINDOW -->
+
+<div id="game-over">
+
+  <div id="results-window">
+
+    <h2 id="result-title"></h2>
+
+    <p id="result-message"></p>
+
+    <p id="result-score">
+      Calificación:
+      <span id="final-score">0</span> / 20
+    </p>
+
+    <button id="continue-button" style="display:none;">
+      Continuar leyendo
+    </button>
+
+    <button id="retry-button">
+      Nuevo intento
+    </button>
+
+  </div>
+
+</div>
+
+
+<script>
+
+/* =================================
+   ELEMENTS
+================================= */
+
+const items = document.querySelectorAll('.item');
+
+const baskets = document.querySelectorAll('.basket');
+
+const scoreDisplay = document.getElementById('score');
+
+const gameArea = document.getElementById('game-area');
+
+const mcDialogue = document.getElementById('mc-dialogue');
+
+let score = 0;
+
+let examFinished = false;
+
+let noneObjectsScoreAdded = false;
+
+
+/* =================================
+   INTRODUCTION PAGES
+================================= */
+
+const introPages = [
+
+  {
+    title: "¡Hola, soy Fénix!",
+    text: `Voldy no puede escucharnos, ni tampoco vernos ¡Pero somos una presencia que levanta el corazón!`.trim()
+  },
+
+  {
+    title: "¡Una situación difícil!",
+    text: `Presentar una prueba para conseguir un trabajo
+ya es estresante ¡y que te desanimen lo hace peor!
+¿Alguna vez has vivido una situación similar?
+Motivemos a Voldy a cumplir su prueba para
+obtener su certificación de Limpiador de Dungeons.`.trim()
+  },
+
+  {
+    title: "¡Tu misión!",
+    text: `Clasifica los objetos en las cestas correctas
+y descubre cuáles no pertenecen a ninguna.
+¡Presta atención a cada objeto antes de decidir!`.trim()
+  },
+
+  {
+    title: "¡Te ayudaré... hasta donde pueda!",
+    text: `Prometo darte pistas. Cuando
+selecciones un objeto, te contaré un poco más
+sobre él para ayudarte a tomar una decisión.
+Pero si no estudiaste para el examen teórico
+no puedo ayudarte mucho. Necesitas conocimientos
+previos antes de hacer la prueba práctica.
+Recuerda: cada respuesta correcta te dará 1 punto
+y la nota mínima aprobatoria es 10/20.`.trim()
+  },
+
+  {
+    title: "¿Listo para el desafío?",
+    text: `¡Juntos podemos ayudar a Voldy a conseguir su certificación de Limpiador de Dungeons!
+    ¡Adelante!`.trim()
+  }
+
+];
+
+
+/* =================================
+   INTRO NAVIGATION ELEMENTS
+================================= */
+
+const startScreen = document.getElementById('start-screen');
+
+const gameLayout = document.getElementById('game-layout');
+
+const introTitle = document.getElementById('intro-title');
+
+const introText = document.getElementById('intro-text');
+
+const introCounter = document.getElementById('intro-counter');
+
+const prevIntro = document.getElementById('prev-intro');
+
+const nextIntro = document.getElementById('next-intro');
+
+const startButton = document.getElementById('start-button');
+
+let currentIntroPage = 0;
+
+gameLayout.style.visibility = 'hidden';
+
+
+/* =================================
+   DISPLAY INTRODUCTION PAGE
+================================= */
+
+function showIntroPage() {
+
+  const page = introPages[currentIntroPage];
+
+  introTitle.textContent = page.title;
+
+  introText.textContent = page.text;
+
+  introText.scrollTop = 0;
+
+  introCounter.textContent =
+    `${currentIntroPage + 1} / ${introPages.length}`;
+
+  prevIntro.disabled = currentIntroPage === 0;
+
+  const isLastPage =
+    currentIntroPage === introPages.length - 1;
+
+  nextIntro.style.display =
+    isLastPage ? 'none' : 'block';
+
+  startButton.style.display =
+    isLastPage ? 'block' : 'none';
+
+}
+
+
+nextIntro.addEventListener('click', () => {
+
+  if (currentIntroPage < introPages.length - 1) {
+
+    currentIntroPage++;
+
+    showIntroPage();
+
+  }
+
+});
+
+
+prevIntro.addEventListener('click', () => {
+
+  if (currentIntroPage > 0) {
+
+    currentIntroPage--;
+
+    showIntroPage();
+
+  }
+
+});
+
+
+startButton.addEventListener('click', () => {
+
+  startScreen.style.display = 'none';
+
+  gameLayout.style.visibility = 'visible';
+
+  mcDialogue.textContent =
+    "¡Juntos podemos ayudar a Voldy!";
+
+});
+
+
+showIntroPage();
+
+
+/* =================================
+   MC DIALOGUES
+================================= */
+
+const mcDialogues = {
+
+  "Potion": "Poción de la muerte.",
+
+  "Jewel": "Joya. Siento una fuerte presencia mágica desconocida aquí.",
+
+  "Love Potion": "Poción de amor.\nParece inocente, pero elimina el libre albedrío",
+
+  "Gloves": "Guantes olvidados por un Hunter.\nConservan encantamientos fuertes.",
+
+  "Skin rug": "Piel de oso polar.\nEs medianamente peligrosa en malas manos.",
+
+  "Bear bone": "Hueso de oso polar.\nPuede ser usado para pociones de magia negra.",
+
+  "Book Fire": "¡Este libro está en llamas!\nEl contenedor apagará su fuego, ¿pero cuál contenedor?",
+
+  "Sword": "Espada. No tiene encantamientos que me generen alarma,pero una espada es siempre peligrosa.",
+
+  "Shield": "Escudo con hechizo mágico. Poca protección, no es muy útil.",
+
+  "Tint": "Parece una tinta con encantamiento simple,\npero es mejor no tomar riesgo",
+
+  "Amulet": "Amuleto con un encantamiento mágico simple.",
+
+  "Christmas sock": "Media de navidad con un destello mágico.",
+
+  "Ponche crema": "Ponche crema, seguramente eso bebieron los Hunters.",
+
+  "Panettone": "Panettone de frutas confitadas, la merienda de los Hunters.",
+
+  "Backpack": "¡Un Hunter dejó su bolso! Envíalo a su contenedor,\nentregárselo a su dueño no es nuestra tarea.",
+
+  "Keys": "Qué pena, un Hunter olvidó sus llaves acá.",
+
+  "Snowman": "Parece estar agusto aquí.",
+
+  "Ice-covered bush": "Parece una bola de nieve pero en realidad\nes un arbusto cubierto de nieve.",
+
+  "Tree": "Todavía no es Navidad, no necesitamos el árbol.",
+
+  "Rock": "Piedra corriente.",
+
+  correct: "¡Muy bien! ¡Tú puedes, Voldy!",
+
+  wrong: "Creo que te has equivocado\n¡Pero de los errores también se aprende!",
+
+  noneDropped: "¡Este objeto pertenece aquí!\nEs mejor dejarlo donde está."
+
+};
+
+
+/* =================================
+   DRAG AND DROP SYSTEM
+================================= */
+
+items.forEach(item => {
+
+  let isDragging = false;
+
+  let offsetX = 0;
+
+  let offsetY = 0;
+
+  let gameRect;
+
+  let originalParent;
+
+  let originalNextSibling;
+
+  let originalStyles;
+
+
+  item.addEventListener('pointerdown', (e) => {
+
+    if (examFinished || startScreen.style.display !== 'none') return;
+
+    e.preventDefault();
+
+    isDragging = true;
+
+    originalParent = item.parentNode;
+
+    originalNextSibling = item.nextSibling;
+
+    originalStyles = {
+      position: item.style.position,
+      left: item.style.left,
+      top: item.style.top,
+      width: item.style.width,
+      height: item.style.height,
+      zIndex: item.style.zIndex
+    };
+
+    const rect = item.getBoundingClientRect();
+
+    offsetX = e.clientX - rect.left;
+
+    offsetY = e.clientY - rect.top;
+
+    gameRect = gameArea.getBoundingClientRect();
+
+    item.classList.add('dragging');
+
+    item.style.position = 'fixed';
+
+    item.style.left = rect.left + 'px';
+
+    item.style.top = rect.top + 'px';
+
+    item.style.width = rect.width + 'px';
+
+    item.style.height = rect.height + 'px';
+
+    item.style.zIndex = '99999';
+
+    document.body.appendChild(item);
+
+    mcDialogue.textContent =
+      mcDialogues[item.alt] || "I wonder where this belongs...";
+
+    window.addEventListener('pointermove', moveObject);
+
+    window.addEventListener('pointerup', releaseObject);
+
+    window.addEventListener('pointercancel', cancelObject);
+
+  });
+
+
+  function moveObject(e) {
+
+    if (!isDragging) return;
+
+    item.style.left =
+      (e.clientX - offsetX) + 'px';
+
+    item.style.top =
+      (e.clientY - offsetY) + 'px';
+
+    baskets.forEach(basket => {
+      basket.classList.remove('highlight');
+    });
+
+    baskets.forEach(basket => {
+
+      if (isOverlapping(item, basket)) {
+        basket.classList.add('highlight');
+      }
+
+    });
+
+  }
+
+
+  function releaseObject() {
+
+    if (!isDragging) return;
+
+    isDragging = false;
+
+    let droppedBasket = null;
+
+    baskets.forEach(basket => {
+
+      if (isOverlapping(item, basket)) {
+        droppedBasket = basket;
+      }
+
+    });
+
+    const rect = item.getBoundingClientRect();
+
+    const newLeft = rect.left - gameRect.left;
+
+    const newTop = rect.top - gameRect.top;
+
+    originalParent.insertBefore(item, originalNextSibling);
+
+    item.style.position = 'absolute';
+
+    item.style.left =
+      (newLeft / gameRect.width * 100) + '%';
+
+    item.style.top =
+      (newTop / gameRect.height * 100) + '%';
+
+    item.style.width = originalStyles.width;
+
+    item.style.height = originalStyles.height;
+
+    item.style.zIndex = '';
+
+    item.classList.remove('dragging');
+
+    baskets.forEach(basket => {
+      basket.classList.remove('highlight');
+    });
+
+    removeDragListeners();
+
+    const objectCategory = item.dataset.category;
+
+    if (objectCategory === "none") {
+
+      if (droppedBasket === null) {
+
+        mcDialogue.textContent = mcDialogues.noneDropped;
+
+      } else {
+
+        wrongAnswer();
+
+      }
+
+    }
+
+    else if (droppedBasket !== null) {
+
+      const basketCategory =
+        droppedBasket.dataset.category;
+
+      if (objectCategory === basketCategory) {
+
+        correctAnswer(item);
+
+      } else {
+
+        wrongAnswer();
+
+      }
+
+    }
+
+  }
+
+
+  function cancelObject() {
+
+    if (!isDragging) return;
+
+    isDragging = false;
+
+    originalParent.insertBefore(item, originalNextSibling);
+
+    item.style.position = originalStyles.position;
+
+    item.style.left = originalStyles.left;
+
+    item.style.top = originalStyles.top;
+
+    item.style.width = originalStyles.width;
+
+    item.style.height = originalStyles.height;
+
+    item.style.zIndex = originalStyles.zIndex;
+
+    item.classList.remove('dragging');
+
+    baskets.forEach(basket => {
+      basket.classList.remove('highlight');
+    });
+
+    removeDragListeners();
+
+  }
+
+
+  function removeDragListeners() {
+
+    window.removeEventListener('pointermove', moveObject);
+
+    window.removeEventListener('pointerup', releaseObject);
+
+    window.removeEventListener('pointercancel', cancelObject);
+
+  }
+
+});
+
+
+/* =================================
+   CORRECT ANSWER
+================================= */
+
+function correctAnswer(item) {
+
+  if (examFinished) return;
+
+  score += 1;
+
+  scoreDisplay.textContent = score;
+
+  mcDialogue.textContent = mcDialogues.correct;
+
+  item.remove();
+
+}
+
+
+/* =================================
+   WRONG ANSWER
+================================= */
+
+function wrongAnswer() {
+
+  mcDialogue.textContent = mcDialogues.wrong;
+
+}
+
+
+/* =================================
+   CHECK WIN
+================================= */
+
+function playerWins() {
+
+window.parent.postMessage(
+    "GAME_WON",
+    "*"
+);
+
+
+}
+
+
+/* =================================
+   FINISH EXAM
+================================= */
+
+const finishExamButton =
+  document.getElementById('finish-exam-button');
+
+const gameOver =
+  document.getElementById('game-over');
+
+const resultTitle =
+  document.getElementById('result-title');
+
+const resultMessage =
+  document.getElementById('result-message');
+
+const finalScore =
+  document.getElementById('final-score');
+
+const actionButtons =
+  document.getElementById('action-buttons');
+
+const retryButton =
+  document.getElementById('retry-button');
+
+const continueButton =
+  document.getElementById('continue-button');
+
+
+finishExamButton.addEventListener('click', () => {
+
+  if (examFinished) return;
+
+  examFinished = true;
+
+
+  // AWARD POINTS FOR NONE OBJECTS LEFT OUTSIDE
+
+  if (!noneObjectsScoreAdded) {
+
+    const remainingNoneObjects =
+      document.querySelectorAll('.item[data-category="none"]');
+
+    score += remainingNoneObjects.length;
+
+    noneObjectsScoreAdded = true;
+
+  }
+
+
+  // UPDATE SCOREBOARD
+
+  scoreDisplay.textContent = score;
+
+  finalScore.textContent = score;
+
+
+  // CHECK EXAM RESULT
+
+  if (score >= 10) {
+
+    gameOver.classList.remove('failed');
+    gameOver.classList.add('passed');
+
+    resultTitle.textContent = "🎉 ¡APROBADO! 🎉";
+
+    resultMessage.textContent =
+      "¡Voldy logró aprobar el examen práctico de Limpiador de Dungeons!";
+
+    retryButton.style.display = 'none';
+
+    // SHOW CONTINUE BUTTON
+    continueButton.style.display = 'block';
+
+    } else {
+
+    gameOver.classList.remove('passed');
+    gameOver.classList.add('failed');
+
+    resultTitle.textContent = "❌ ¡INTENTO FALLIDO!";
+
+    resultMessage.textContent =
+      "La historia de Voldy no puede terminar aquí ¡Inténtalo de nuevo!";
+
+    retryButton.style.display = 'block';
+
+    // HIDE CONTINUE BUTTON
+    continueButton.style.display = 'none';
+
+    }
+
+  // DISPLAY RESULTS WINDOW
+
+  gameOver.style.display = 'flex';
+
+});
+
+/* =================================
+   PLAYER WINS - CONTINUE READING
+================================= */
+
+continueButton.addEventListener('click', () => {
+
+playerWins();
+
+});
+
+/* =================================
+   COLLISION DETECTION
+================================= */
+
+function isOverlapping(el1, el2) {
+
+  const rect1 = el1.getBoundingClientRect();
+
+  const rect2 = el2.getBoundingClientRect();
+
+  return (
+
+    rect1.left < rect2.right &&
+
+    rect1.right > rect2.left &&
+
+    rect1.top < rect2.bottom &&
+
+    rect1.bottom > rect2.top
+
+  );
+
+}
+
+
+/* =================================
+   HELP WINDOW CONTROLS
+================================= */
+
+const helpButton =
+  document.getElementById('help-button');
+
+const helpWindow =
+  document.getElementById('help-window');
+
+const helpClose =
+  document.getElementById('help-close');
+
+
+helpButton.addEventListener('click', () => {
+
+  helpWindow.style.display =
+    helpWindow.style.display === 'block' ? 'none' : 'block';
+
+});
+
+
+helpClose.addEventListener('click', () => {
+
+  helpWindow.style.display = 'none';
+
+});
+
+
+/* =================================
+   RETRY GAME
+================================= */
+
+retryButton.addEventListener('click', () => {
+
+  location.reload();
+
+});
+
+</script>
+</body>
+</html>
