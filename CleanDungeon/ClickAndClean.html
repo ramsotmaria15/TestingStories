@@ -75,14 +75,15 @@ body {
   font-size: 16px;
   line-height: 1.7;
   text-align: left;
-  white-space: pre-line;
-  overflow-wrap: normal;
-  word-break: normal;
-  hyphens: none;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   margin: 0;
   flex: 1;
   min-height: 80px;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  word-break: normal;
   overflow-y: auto;
   user-select: text;
 }
@@ -278,13 +279,17 @@ body {
 
 #mc-dialogue {
   flex: 1;
+  min-width: 0;
+  max-width: 100%;
   font-size: clamp(13px, 1.6vw, 18px);
   font-weight: bold;
   color: #333;
   line-height: 1.4;
   overflow-y: auto;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  white-space: normal;
   user-select: text;
-  white-space: pre-line;
 }
 
 /* =================================
@@ -294,7 +299,7 @@ body {
 #action-buttons {
   position: fixed;
   right: 18px;
-  bottom: 26px;
+  bottom: calc((100px - 48px) / 2);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -343,6 +348,11 @@ body {
 #help-button:hover {
   transform: scale(1.1);
   background: #eaf8ff;
+}
+
+/* Keep dialogue text clear of the fixed action buttons */
+#character-banner {
+  padding-right: 245px;
 }
 
 /* =================================
@@ -518,8 +528,12 @@ body {
 
 #action-buttons {
   right: 10px;
-  bottom: 14px;
+  bottom: calc((75px - 40px) / 2);
   gap: 8px;
+}
+
+#character-banner {
+  padding-right: 190px;
 }
 
 #finish-exam-button {
@@ -600,7 +614,7 @@ body {
   min-height: 0;
 
   grid-template-columns: minmax(0, 1fr) 68px;
-  grid-template-rows: minmax(65px, 22dvh, 82px);
+  grid-template-rows: minmax(0, 1fr) clamp(65px, 22dvh, 82px);
 
   overflow: hidden;
 }
@@ -619,7 +633,7 @@ body {
   grid-row: 2;
   display: flex;
   align-items: center;
-  padding: 4px 10px;
+  padding: 4px 165px 4px 10px;
   gap: 8px;
   min-height: 65px;
   overflow: visible;
@@ -681,7 +695,7 @@ body {
 
 #action-buttons {
   right: 8px;
-  bottom: 5px;
+  bottom: calc((clamp(65px, 22dvh, 82px) - 34px) / 2);
   gap: 6px;
 }
 
@@ -1141,41 +1155,34 @@ const introPages = [
 
   {
     title: "¡Hola, soy Fénix!",
-    text: `Voldy no puede escucharnos, ni tampoco vernos ¡Pero somos una presencia que levanta el corazón!`.trim()
+    text: `Voldy no puede escucharnos, ni tampoco vernos ¡Pero somos una presencia que levanta el corazón!`
   },
 
   {
     title: "¡Una situación difícil!",
     text: `Presentar una prueba para conseguir un trabajo
-ya es estresante ¡y que te desanimen lo hace peor!
-¿Alguna vez has vivido una situación similar?
+ya es estresante ¡y que te desanimen lo hace peor! ¿Alguna vez has vivido una situación similar?
 Motivemos a Voldy a cumplir su prueba para
-obtener su certificación de Limpiador de Dungeons.`.trim()
+obtener su certificación de Limpiador de Dungeons.`
   },
 
   {
     title: "¡Tu misión!",
-    text: `Clasifica los objetos en las cestas correctas
-y descubre cuáles no pertenecen a ninguna.
-¡Presta atención a cada objeto antes de decidir!`.trim()
+    text: `Clasifica los objetos en los contenedores correctos y descubre cuáles no pertenecen a ninguno.
+¡Presta atención a cada objeto antes de decidir!`
   },
 
   {
     title: "¡Te ayudaré... hasta donde pueda!",
-    text: `Prometo darte pistas. Cuando
-selecciones un objeto, te contaré un poco más
-sobre él para ayudarte a tomar una decisión.
-Pero si no estudiaste para el examen teórico
-no puedo ayudarte mucho. Necesitas conocimientos
-previos antes de hacer la prueba práctica.
-Recuerda: cada respuesta correcta te dará 1 punto
-y la nota mínima aprobatoria es 10/20.`.trim()
+    text: `Prometo darte pistas. Cuando selecciones un objeto, te contaré un poco más sobre él para ayudarte a tomar una decisión.
+    Pero si no estudiaste para el examen teórico no puedo ayudarte mucho. Necesitas conocimientos previos antes de hacer la prueba práctica.
+    Recuerda: cada respuesta correcta te dará 1 punto y la nota mínima aprobatoria es 10/20.`
   },
 
   {
     title: "¿Listo para el desafío?",
     text: `¡Juntos podemos ayudar a Voldy a conseguir su certificación de Limpiador de Dungeons!
-    ¡Adelante!`.trim()
+    ¡Adelante!`
   }
 
 ];
@@ -1288,21 +1295,21 @@ const mcDialogues = {
 
   "Jewel": "Joya. Siento una fuerte presencia mágica desconocida aquí.",
 
-  "Love Potion": "Poción de amor.\nParece inocente, pero elimina el libre albedrío",
+  "Love Potion": "Poción de amor. Parece inocente, pero elimina el libre albedrío",
 
-  "Gloves": "Guantes olvidados por un Hunter.\nConservan encantamientos fuertes.",
+  "Gloves": "Guantes olvidados por un Hunter. Conservan encantamientos fuertes.",
 
-  "Skin rug": "Piel de oso polar.\nEs medianamente peligrosa en malas manos.",
+  "Skin rug": "Piel de oso polar. Es medianamente peligrosa en malas manos.",
 
-  "Bear bone": "Hueso de oso polar.\nPuede ser usado para pociones de magia negra.",
+  "Bear bone": "Hueso de oso polar. Puede ser usado para pociones de magia negra.",
 
-  "Book Fire": "¡Este libro está en llamas!\nEl contenedor apagará su fuego, ¿pero cuál contenedor?",
+  "Book Fire": "¡Este libro está en llamas! El contenedor apagará su fuego, ¿pero cuál contenedor?",
 
-  "Sword": "Espada. No tiene encantamientos que me generen alarma,pero una espada es siempre peligrosa.",
+  "Sword": "Espada. No tiene encantamientos que me generen alarma, pero una espada es siempre peligrosa.",
 
   "Shield": "Escudo con hechizo mágico. Poca protección, no es muy útil.",
 
-  "Tint": "Parece una tinta con encantamiento simple,\npero es mejor no tomar riesgo",
+  "Tint": "Parece una tinta con encantamiento simple, pero es mejor no tomar riesgo",
 
   "Amulet": "Amuleto con un encantamiento mágico simple.",
 
@@ -1312,13 +1319,13 @@ const mcDialogues = {
 
   "Panettone": "Panettone de frutas confitadas, la merienda de los Hunters.",
 
-  "Backpack": "¡Un Hunter dejó su bolso! Envíalo a su contenedor,\nentregárselo a su dueño no es nuestra tarea.",
+  "Backpack": "¡Un Hunter dejó su bolso! Envíalo a su contenedor, entregárselo a su dueño no es nuestra tarea.",
 
   "Keys": "Qué pena, un Hunter olvidó sus llaves acá.",
 
   "Snowman": "Parece estar agusto aquí.",
 
-  "Ice-covered bush": "Parece una bola de nieve pero en realidad\nes un arbusto cubierto de nieve.",
+  "Ice-covered bush": "Parece una bola de nieve pero en realidad es un arbusto cubierto de nieve.",
 
   "Tree": "Todavía no es Navidad, no necesitamos el árbol.",
 
@@ -1326,9 +1333,9 @@ const mcDialogues = {
 
   correct: "¡Muy bien! ¡Tú puedes, Voldy!",
 
-  wrong: "Creo que te has equivocado\n¡Pero de los errores también se aprende!",
+  wrong: "Creo que te has equivocado ¡Pero de los errores también se aprende!",
 
-  noneDropped: "¡Este objeto pertenece aquí!\nEs mejor dejarlo donde está."
+  noneDropped: "¡Este objeto pertenece aquí! Es mejor dejarlo donde está."
 
 };
 
