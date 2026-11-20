@@ -600,7 +600,7 @@ body {
   min-height: 0;
 
   grid-template-columns: minmax(0, 1fr) 68px;
-  grid-template-rows: minmax(0, 1fr) clamp(52px, 17dvh, 64px);
+  grid-template-rows: minmax(65px, 22dvh, 82px);
 
   overflow: hidden;
 }
@@ -615,15 +615,24 @@ body {
 /* CHARACTER BANNER */
 
 #character-banner {
-  padding: 3px 8px;
-  gap: 6px;
-  min-height: 0;
-  overflow: hidden;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  padding: 4px 10px;
+  gap: 8px;
+  min-height: 65px;
+  overflow: visible;
+  position: relative;
+  z-index: 5;
 }
 
 #mc-image {
-  width: clamp(36px, 12dvh, 48px);
-  height: 100%;
+  width: clamp(42px, 14dvh, 58px);
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 #mc-dialogue {
