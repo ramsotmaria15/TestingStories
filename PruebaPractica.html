@@ -142,6 +142,7 @@ Pero recuerda que eres un ente superior que tienes el poder de ayudar a un peque
     &lt;iframe
         id=&quot;external-game-frame&quot;
         src=&quot;CleanDungeon/ClickAndClean.html&quot;
+        title=&quot;Click and Clean game&quot;
         allow=&quot;fullscreen&quot;
         allowfullscreen&gt;
     &lt;/iframe&gt;
@@ -162,106 +163,127 @@ Pero recuerda que eres un ente superior que tienes el poder de ayudar a un peque
 
 &lt;style&gt;
 
-    /* Fullscreen game container */
-    #game-shell {
-        position: fixed;
-        inset: 0;
-        z-index: 99999;
-        background: #000;
-    }
+/* Remove spacing and scrolling from the Twine page */
+html,
+body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow: hidden !important;
+}
 
-    /* Game iframe */
+/* Fullscreen game container */
+#game-shell {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    margin: 0;
+    padding: 0;
+    z-index: 99999;
+    background: #000;
+    overflow: hidden;
+}
+
+/* Game iframe */
+#external-game-frame {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+/* Rotation message hidden by default */
+#rotate-message {
+    display: none;
+}
+
+/* Portrait mode */
+@media screen and (orientation: portrait) {
+
     #external-game-frame {
-        width: 100%;
-        height: 100%;
-        border: none;
-        display: block;
+        visibility: hidden;
     }
 
-    /* Rotation message hidden by default */
     #rotate-message {
-        display: none;
+        display: flex;
+        position: absolute;
+        inset: 0;
+        z-index: 100000;
+        background: #111;
+        color: white;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 25px;
+        box-sizing: border-box;
+        font-family: sans-serif;
     }
 
-    /* Portrait mode */
-    @media screen and (orientation: portrait) {
-
-        #external-game-frame {
-            visibility: hidden;
-        }
-
-        #rotate-message {
-            display: flex;
-            position: fixed;
-            inset: 0;
-            z-index: 100000;
-            background: #111;
-            color: white;
-
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-
-            text-align: center;
-            padding: 25px;
-            font-family: sans-serif;
-        }
-
-        #rotate-message h2 {
-            font-size: 26px;
-            margin-bottom: 10px;
-        }
-
-        #rotate-message p {
-            font-size: 16px;
-            margin-bottom: 25px;
-        }
-
-        #rotate-message button {
-            padding: 14px 25px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .rotate-icon {
-            font-size: 60px;
-            margin-bottom: 20px;
-        }
+    #rotate-message h2 {
+        font-size: 26px;
+        margin-bottom: 10px;
     }
+
+    #rotate-message p {
+        font-size: 16px;
+        margin-bottom: 25px;
+    }
+
+    #rotate-message button {
+        padding: 14px 25px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .rotate-icon {
+        font-size: 60px;
+        margin-bottom: 20px;
+    }
+}
 
 &lt;/style&gt;
 
 &lt;script&gt;
 
-    function tryLandscape() {
+function tryLandscape() {
 
-        const shell = document.getElementById(&quot;game-shell&quot;);
+    const shell = document.getElementById(&quot;game-shell&quot;);
 
-        if (shell.requestFullscreen) {
+    if (!shell) return;
 
-            shell.requestFullscreen()
-                .then(() =&gt; {
+    if (shell.requestFullscreen) {
 
-                    if (screen.orientation &amp;&amp;
-                        screen.orientation.lock) {
+        shell.requestFullscreen()
+            .then(() =&gt; {
 
-                        return screen.orientation.lock(&quot;landscape&quot;);
+                if (
+                    screen.orientation &amp;&amp;
+                    screen.orientation.lock
+                ) {
+                    return screen.orientation.lock(&quot;landscape&quot;);
+                }
 
-                    }
-
-                })
-                .catch(error =&gt; {
-                    console.log(
-                        &quot;Landscape lock unavailable:&quot;,
-                        error
-                    );
-                });
-
-        }
+            })
+            .catch(error =&gt; {
+                console.log(
+                    &quot;Fullscreen or landscape lock unavailable:&quot;,
+                    error
+                );
+            });
 
     }
+}
 
 &lt;/script&gt;
 </tw-passagedata><tw-passagedata pid="4" name="Victory" tags="" position="200,400" size="100,100">&lt;h1&gt;¡Felicitaciones!&lt;/h1&gt;
